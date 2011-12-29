@@ -1,0 +1,36 @@
+ISCS: In-Simulation Controller Specification
+
+
+SUMMARY
+
+This software package allows a user to automatically create behaviors for virtual legged robots in a physics engine. The user accomplishes this by placing an object of interest in the robot's environment, and additional objects that act as obstacles (such as walls) or enablers (such as steps) for the robot to reach the object.
+
+
+INSTALLATION
+
+The code is currently configured only for Linux machines.
+
+1. Download and install version 11.1 of the physics engine Open Dynamics Engine from here
+
+www.ode.org
+
+
+2. Install the openGL Utility Toolkit
+
+sudo apt-get install freeglut3
+
+
+3. Also install the free implementation of the OpenGL API:
+
+sudo apt-get install libgl1-mesa-dev 
+
+
+4. Now, compile the ISCS
+
+./makeODE
+
+
+5. Run it:
+
+./M3
+
