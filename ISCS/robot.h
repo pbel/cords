@@ -62,6 +62,7 @@ public:
 	void Mark_Component(void);
 	int  Motors_Number_Of(void);
 	void Move(int timeStep);
+	void Move_WH(int timeStep);
 	void Move(double x, double y, double z);
 	void Save(ofstream *outFile);
 	double Sensor_Sum(void);
@@ -77,6 +78,7 @@ public:
 
 private:
 	void Actuate_Motors(void);
+	void Actuate_Motors_WH(int);
 	void Component_Reindex_After_Deletion(void);
 	void Connect_Joint(void);
 	void Create_Sandbox(void);

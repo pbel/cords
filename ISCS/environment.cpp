@@ -443,17 +443,24 @@ void ENVIRONMENT::Load(void) {
 
 	ifstream *inFile = new ifstream(fileName);
 
-	Destroy();
+	if ( !inFile->is_open() ) {
 
-	Initialize();
+		printf("Can't open environment file to load.\n");
+	}
+	else {
 
-	Load(inFile);
+		Destroy();
+
+		Initialize();
+
+		Load(inFile);
+
+		printf("Environment %d loaded.\n",savedFileIndex);
+	}
 
 	inFile->close();
 	delete inFile;
 	inFile = NULL;
-
-	printf("Environment %d loaded.\n",savedFileIndex);
 }
 
 void ENVIRONMENT::Mark_Component(void) {
@@ -530,7 +537,7 @@ void ENVIRONMENT::Robot_Copy(void) {
 			currentRobot = NULL;
 		}
 
-		Robots_Recolor_Red();
+		Robots_Recolor('r');
 	}
 }
 
@@ -602,7 +609,7 @@ void ENVIRONMENT::Robot_Delete(void) {
 	
 		robots[numRobots-1]->Activate();
 
-		Robots_Recolor_Red();
+		Robots_Recolor('r');
 	}
 }
 
@@ -618,7 +625,7 @@ int  ENVIRONMENT::Robot_Has_Stopped(int timer) {
 	return( false );
 }
 
-void ENVIRONMENT::Robots_Recolor_Blue(void) {
+void ENVIRONMENT::Robots_Recolor(char color) {
 
 	// Lighter-colored robots are further ahead in the sequence
 
@@ -626,49 +633,30 @@ void ENVIRONMENT::Robots_Recolor_Blue(void) {
 
 		double colorIncrement = 0.7/(double(numRobots)-1.0);
 
-		for (int i=0; i<numRobots; i++)
+		for (int i=0; i<numRobots; i++) {
 
-			robots[i]->Set_Color(
-				i*colorIncrement,
-				i*colorIncrement,
-				1.0);
+			if ( color == 'r' || color == 'R') {
 
-	}
-}
+				robots[i]->Set_Color(
+					1.0,
+					i*colorIncrement,
+					i*colorIncrement);
+			}
 
-void ENVIRONMENT::Robots_Recolor_Green(void) {
+			if ( color == 'g' || color == 'G') {
+				robots[i]->Set_Color(
+					i*colorIncrement,
+					1.0,
+					i*colorIncrement);
+			}
 
-	// Lighter-colored robots are further ahead in the sequence
-
-	if ( numRobots > 1 ) {
-
-		double colorIncrement = 0.7/(double(numRobots)-1.0);
-
-		for (int i=0; i<numRobots; i++)
-
-			robots[i]->Set_Color(
-				i*colorIncrement,
-				1.0,
-				i*colorIncrement);
-
-	}
-}
-
-void ENVIRONMENT::Robots_Recolor_Red(void) {
-
-	// Lighter-colored robots are further ahead in the sequence
-
-	if ( numRobots > 1 ) {
-
-		double colorIncrement = 0.7/(double(numRobots)-1.0);
-
-		for (int i=0; i<numRobots; i++)
-
-			robots[i]->Set_Color(
-				1.0,
-				i*colorIncrement,
-				i*colorIncrement);
-
+			if ( color == 'b' || color == 'B') {
+				robots[i]->Set_Color(
+					i*colorIncrement,
+					i*colorIncrement,
+					1.0);
+			}
+		}
 	}
 }
 
@@ -915,6 +903,8 @@ void ENVIRONMENT::Initialize(void) {
 	robots = new ROBOT * [MAX_ROBOTS];
 	for (int i=0;	i<MAX_ROBOTS;	i++)
 		robots[i] = NULL;
+
+	robotIndex = 0;
 }
 
 void ENVIRONMENT::Load(ifstream *inFile) {

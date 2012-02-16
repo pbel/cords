@@ -19,6 +19,9 @@ public:
 	int 		timer;
 	int 		evaluationPeriod;
 
+	int 		numSensors;
+	int 		numMotors;
+
 private:
 	long 		nextGenomeID;
 
@@ -36,9 +39,6 @@ private:
 
 	MATRIX		*ageCaps;
 	MATRIX		*environments;
-
-	int 		numSensors;
-	int 		numMotors;
 
 	double 		mutationProbability;
 

@@ -103,6 +103,7 @@ private:
 	void Load_Optimizer(ifstream *inFile);
 	void Move(double x, double y, double z);
 	void Optimizer_Initialize(void);
+	int  Optimizer_Robot_Mismatch(void);
 	void Reset(dWorldID world, dSpaceID space, dJointGroupID contactgroup);
 	int  Robot_Being_Evaluated(void);
 	int  Robots_Have_Stopped(void);

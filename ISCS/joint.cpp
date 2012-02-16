@@ -37,7 +37,7 @@ JOINT::JOINT(void) {
 
 	active = false;
 
-	marked = false;
+	markIndex = -1;
 
 	hidden = false;
 }
@@ -58,7 +58,7 @@ JOINT::JOINT(ROBOT *cR, int o1Index, int o2Index,
 
 	active = false;
 
-	marked = false;
+	markIndex = -1;
 
 	hidden = true;
 
@@ -83,7 +83,7 @@ JOINT::JOINT(ROBOT *cR, JOINT *other) {
 
 	active = false;
 
-	marked = false;
+	markIndex = -1;
 
 	hidden = false;
 
@@ -118,7 +118,7 @@ JOINT::JOINT(ROBOT *cR, ifstream *inFile) {
 
 	active = false;
 
-	marked = false;
+	markIndex = -1;
 
 	hidden = true;
 }
@@ -230,10 +230,7 @@ void JOINT::Make_Physical(dWorldID world) {
 
 void JOINT::Mark(void) {
 
-	marked = true;
-
-	Set_Color(0.4, 0.0, 0.8);
-
+	Mark_Joint();
 }
 
 void JOINT::Move(double motorNeuronValue) {
@@ -378,7 +375,7 @@ void JOINT::Unhide(void) {
 
 void JOINT::Unmark(void) {
 
-	marked = false;
+	markIndex = -1;
 
 	if ( Is_Unconnected() )
 
@@ -475,6 +472,23 @@ void JOINT::Initialize(int o1Index, int o2Index,
 	if ( obj1Index < 0 || obj2Index < 0  )
 
 		Set_Color(2.0, 0.8, 0.0);
+}
+
+void JOINT::Mark_Joint(void) {
+
+	int maxMarkIndex = -1;
+
+	for ( int i=0; i<containerRobot->numJoints; i++ ) {
+
+		if ( containerRobot->joints[i]->markIndex > maxMarkIndex )
+
+			maxMarkIndex = containerRobot->joints[i]->markIndex;
+	}
+
+	markIndex = maxMarkIndex++;
+
+	Set_Color(0.4, 0.0, 0.8);
+
 }
 
 #endif

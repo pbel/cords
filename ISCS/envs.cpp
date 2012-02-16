@@ -138,8 +138,12 @@ void ENVS::Active_Element_Load(void) {
 			Load(true);
 
 		// Robots during design are always red.
-		for (int i=0;	i<numberOfEnvs;	i++)
-			taskEnvironments[i]->Robots_Set_Color(1,0,0);
+		for (int i=0;	i<numberOfEnvs;	i++) {
+
+//			taskEnvironments[i]->Robots_Set_Color(1,0,0);
+
+			taskEnvironments[i]->Robots_Recolor('r');
+		}
 	}
 }
 
@@ -431,10 +435,9 @@ void ENVS::Mode_Simulate_Set_Champ(void) {
 	// The best robot is always green.
 	for (int i=0;	i<numberOfEnvs;	i++) {
 
-//		taskEnvironments[i]->Robots_Set_Color(0,1,0);
 		taskEnvironments[i]->Set_Color(0,1,0);
 
-		taskEnvironments[activeEnvironment]->Robots_Recolor_Green();
+		taskEnvironments[activeEnvironment]->Robots_Recolor('g');
 	}
 }
 
@@ -447,9 +450,11 @@ void ENVS::Mode_Simulate_Set_Design(void) {
 
 		return;
 
-	if ( In_Evolution_Mode() )
+	if ( In_Evolution_Mode() ) {
 
 		optimizer->Genome_Discard_Being_Evaluated();
+
+	}
 
 	Destroy_Simulated_Objects();
 
@@ -460,11 +465,9 @@ void ENVS::Mode_Simulate_Set_Design(void) {
 	// Robots during design are always red.
 	for (int i=0;	i<numberOfEnvs;	i++) {
 
-		taskEnvironments[i]->Robots_Set_Color(1,0,0);
-
 		taskEnvironments[i]->Set_Color(1,0,0);
 
-		taskEnvironments[activeEnvironment]->Robots_Recolor_Red();
+		taskEnvironments[activeEnvironment]->Robots_Recolor('r');
 	}
 }
 
@@ -477,21 +480,24 @@ void ENVS::Mode_Simulate_Set_Evolve(dWorldID world, dSpaceID space) {
 		return;
 
 	// No task for the robot to perform has yet been set.
-	if ( End_State_Missing() )
+	if ( End_State_Missing() ) {
+		printf("No target state for the robot has been defined.\n");
 		return;
+	}
 
 	// A robot isn't evolvable due to a construction problem
 	for (int i=0; i<numberOfEnvs; i++) {
 		if ( taskEnvironments[i]->Robot_Joint_Is_Unattached() ) {
 			printf("At least one robot joint is unconnected.\n");
-			taskEnvironments[i]->Robot_Joint_Unhide_Unattached();
+			while ( selectionLevel != SELECTION_LEVEL_ROBOT )
+				Selection_Level_Lower();
 			Viewpoint_Set(0,2.5,20,90,-90,0);
 			return;
 		}
 	}
 
 	// Selection level is too low. 
-	if ( selectionLevel == SELECTION_LEVEL_ROBOT )
+	if ( selectionLevel == SELECTION_LEVEL_ROBOT )	// lowest level
 		Selection_Level_Raise();
 
 	if ( selectionLevel == SELECTION_LEVEL_OBJECT )
@@ -500,9 +506,16 @@ void ENVS::Mode_Simulate_Set_Evolve(dWorldID world, dSpaceID space) {
 	// Just finished defining the task environment.
 	if ( In_Design_Mode() ) {
 
-	// TBD: save environment here for user experiment
-	// 	(envs gets saved by optimizer)
-		taskEnvironments[activeEnvironment]->Save();
+		// TBD: save environment (env) here for user experiment
+		// 	(envs gets saved by optimizer)
+		//taskEnvironments[activeEnvironment]->Save();
+
+		// if the number of sensors or motors has changed,
+		// delete the optimizer
+		if ( Optimizer_Robot_Mismatch() ) {
+			delete optimizer;
+			optimizer = NULL;
+		}
 
 		Optimizer_Initialize();
 	}
@@ -521,10 +534,9 @@ void ENVS::Mode_Simulate_Set_Evolve(dWorldID world, dSpaceID space) {
 	// The evolving robots are always blue.
 	for (int i=0;i<numberOfEnvs;i++) {
 
-//		taskEnvironments[i]->Robots_Set_Color(0,0,1);
 		taskEnvironments[i]->Set_Color(0,0,1);
 
-		taskEnvironments[activeEnvironment]->Robots_Recolor_Blue();
+		taskEnvironments[activeEnvironment]->Robots_Recolor('b');
 	}
 }
 
@@ -593,7 +605,7 @@ void ENVS::Selection_Level_Lower(void) {
 
 			selectionLevel = SELECTION_LEVEL_ROBOT;
 
-			taskEnvironments[activeEnvironment]->Robots_Recolor_Red();
+			taskEnvironments[activeEnvironment]->Robots_Recolor('r');
 		}
 	}
 
@@ -610,7 +622,7 @@ void ENVS::Selection_Level_Lower(void) {
 
 			selectionLevel = SELECTION_LEVEL_OBJECT;
 
-			taskEnvironments[activeEnvironment]->Robots_Recolor_Red();
+			taskEnvironments[activeEnvironment]->Robots_Recolor('r');
 		}
 	}
 
@@ -634,8 +646,7 @@ void ENVS::Selection_Level_Raise(void) {
 		return;
 
 	else if ( selectionLevel==SELECTION_LEVEL_ENVIRONMENT ) {
-	// "environment" is highest level for now
-		return;
+	// "environment" is highest level for users for now
 
 //		taskEnvironments[activeEnvironment]->Deactivate_All();
 //
@@ -644,6 +655,7 @@ void ENVS::Selection_Level_Raise(void) {
 //		Activate_All();
 //
 //		selectionLevel=SELECTION_LEVEL_ENVS;
+		return;
 	}
 
 	else if ( selectionLevel==SELECTION_LEVEL_OBJECT ) {
@@ -654,7 +666,7 @@ void ENVS::Selection_Level_Raise(void) {
 
 		selectionLevel=SELECTION_LEVEL_ENVIRONMENT;
 
-		taskEnvironments[activeEnvironment]->Robots_Recolor_Red();
+		taskEnvironments[activeEnvironment]->Robots_Recolor('r');
 	}
 
 	else { // selectionLevel==SELECTION_LEVEL_ROBOT
@@ -667,7 +679,7 @@ void ENVS::Selection_Level_Raise(void) {
 
 		selectionLevel=SELECTION_LEVEL_OBJECT;
 
-		taskEnvironments[activeEnvironment]->Robots_Recolor_Red();
+		taskEnvironments[activeEnvironment]->Robots_Recolor('r');
 	}
 }
 
@@ -1074,17 +1086,24 @@ void ENVS::Load(int showGraphics) {
 
 	ifstream *inFile = new ifstream(fileName);
 
-	Camera_Position_Load(inFile,showGraphics);
+	if ( !inFile->is_open() ) {
 
-	Load_Environments(inFile);
+		printf("Can't open envs file to load.\n");
+	}
+	else {
 
-	Load_Optimizer(inFile);
+		Camera_Position_Load(inFile,showGraphics);
+
+		Load_Environments(inFile);
+
+		Load_Optimizer(inFile);
+
+		printf("envs %d loaded.\n",savedFileIndex);
+	}
 
 	inFile->close();
 	delete inFile;
 	inFile = NULL;
-
-	printf("envs %d loaded.\n",savedFileIndex);
 }
 
 void ENVS::Load_Environments(ifstream *inFile) {
@@ -1141,6 +1160,17 @@ void ENVS::Optimizer_Initialize(void) {
 		optimizer = new OPTIMIZER(	numberOfSensors,
 						numberOfMotors);
 	}
+}
+
+int ENVS::Optimizer_Robot_Mismatch(void) {
+
+	if ( !optimizer ) 
+		return (1);
+
+	return ( optimizer->numSensors != 
+	     	taskEnvironments[0]->robots[0]->Sensors_Number_Of()
+	     || optimizer->numMotors !=
+		 taskEnvironments[0]->robots[0]->Motors_Number_Of() );
 }
 
 void ENVS::Reset(dWorldID world, dSpaceID space, dJointGroupID contactgroup) {
@@ -1235,7 +1265,6 @@ void ENVS::Save_Optimizer(ofstream *outFile) {
 
 void ENVS::SavedFile_FindNext(void) {
 
-	/*
 	savedFileIndex++;
 
 	char fileName[100];
@@ -1244,9 +1273,6 @@ void ENVS::SavedFile_FindNext(void) {
 	if ( !File_Exists(fileName) )
 
 		savedFileIndex = 0;
-	*/
-
-	savedFileIndex = 0;
 }
 
 double ENVS::Sensor_Sum(void) {
@@ -1312,8 +1338,10 @@ void ENVS::Video_Stop(void) {
 	sprintf(command,"chmod 777 Movie%d.bat",movieIndex);
 	system(command);
 
-	sprintf(command,"./Movie%d.bat &",movieIndex);
-	system(command);
+// TBD: don't run the movie-making script automatically; 
+//      leave the series of jpegs 
+//	sprintf(command,"./Movie%d.bat &",movieIndex);
+//	system(command);
 
 	recordingVideo = false;
 }

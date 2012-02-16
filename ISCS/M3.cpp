@@ -1,6 +1,7 @@
 #include "stdlib.h"
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
+#include <sys/time.h>	// for timestamp in keystroke file
 
 #include "envs.h"
 
@@ -31,6 +32,9 @@ void 		Simulator_Destroy(void);
 
 int		showGraphics;
 int		randSeed = RAND_SEED;
+//int		captureScript = false;
+int		captureScript = true;	// TBD: for student experiment
+struct		timeval currTime;
 
 int Geoms_Can_Interpenetrate(dGeomID o1, dGeomID o2) {
 
@@ -493,8 +497,8 @@ static void command (int cmd)
 
 	else if ( cmd=='i' ) // Start or stop recording a mov[i]e
 // TBD: disable for student experiment
-//		;
-		envs->Video_Start_Stop();
+		printf("Movie recording is disabled\n");
+//		envs->Video_Start_Stop();
 	else if ( Command_To_Load_Or_Save_Environment(cmd) )
 		Load_Or_Save_Environment(cmd);
 
@@ -509,7 +513,15 @@ static void command (int cmd)
 
 	else if ( Command_To_Change_Selection_Level(cmd) )
 		Change_Selection_Level(cmd);
-	
+
+	if ( captureScript ) {
+		// capture input commands, with timestamp
+		char fname[64] = "SavedFiles/m3cmd.scr";
+		gettimeofday(&currTime, NULL);
+		FILE *ofp = fopen (fname,"a");
+		fprintf (ofp,"%c %ld\n",cmd,currTime.tv_sec);
+		fclose(ofp);
+	}
 }
 
 dsFunctions Simulator_Create(void) {
@@ -556,9 +568,9 @@ void Print_Usage(void) {
 	printf("   J: increase object 1st size dimension;\tj: reduce\n");
 	printf("   K: increase object 2nd size dimension;\tk: reduce\n");
 	printf("   L: increase object 3rd size dimension;\tl: reduce\n");
-	printf("   p: rotate 3 degrees in x;\tP: rotate 30 degrees in X\n");
-	printf("   q: rotate 3 degrees in y;\tQ: rotate 30 degrees in Y\n");
-	printf("   r: rotate 3 degrees in z;\tR: rotate 30 degrees in Z\n");
+	printf("   P: rotate 30 degrees in x;\tp: rotate 3 degrees in x\n");
+	printf("   Q: rotate 30 degrees in y;\tq: rotate 3 degrees in y\n");
+	printf("   R: rotate 30 degrees in z;\tr: rotate 3 degrees in z\n");
 	printf("   (: mark an object;\t): unmark\n");
 	printf("   @: connect active joint to marked objects\n");
 	printf("   >: increase joint range for joints;\t<: reduce\n");
@@ -586,6 +598,9 @@ void Parse_Parameters(int argc, char **argv) {
 		if ( strcmp(argv[currParam],"-h") == 0 ||
 		     strcmp(argv[currParam],"--help") == 0 )
 			Print_Usage();
+
+		if ( strcmp(argv[currParam],"-cscript") == 0 )
+			captureScript = true;
 	}
 }
 

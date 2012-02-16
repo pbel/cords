@@ -82,7 +82,14 @@ MATRIX::MATRIX(char *fileName) {
 
 	ifstream *inFile = new ifstream(fileName);
 
-	ReadFromFile(inFile);
+	if ( !inFile->is_open() ) {
+
+		printf("Matrix: Can't open input file.\n");
+	}
+	else {
+
+		ReadFromFile(inFile);
+	}
 
 	inFile->close();
 	delete inFile;
@@ -1565,7 +1572,7 @@ MATRIX *MATRIX::DecimalToBinary(int val, int maxValue) {
 
 	int power = 0;
 
-	while ( (maxValue - pow(2,power)) >= 0 ) {
+	while ( (maxValue - pow(2.0,power)) >= 0 ) {
 
 		power = power + 1;
 	}
@@ -1576,13 +1583,13 @@ MATRIX *MATRIX::DecimalToBinary(int val, int maxValue) {
 
 		power = 0;
 
-		while ( (val - pow(2,power)) >= 0 ) {
+		while ( (val - pow(2.0,power)) >= 0 ) {
 
 			power = power + 1;
 		}
 
 		binaryVal->Set(0,binaryVal->width-power,1);
-		val = val - int(pow(2,power-1));
+		val = val - int(pow(2.0,power-1));
 	}
 
 	return( binaryVal );

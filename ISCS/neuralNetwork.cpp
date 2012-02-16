@@ -218,6 +218,9 @@ void NEURAL_NETWORK::Print(void) {
 
 		weights->Print();
 
+	printf("numSensors: %d, numMotors: %d, numNodes: %d\n",
+	        numSensors, numMotors, numNodes);
+
 	if ( nodeValues )
 
 		nodeValues->Print();

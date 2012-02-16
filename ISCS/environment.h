@@ -69,9 +69,7 @@ public:
 	int  Robot_Has_Stopped(int timer);
 	int  Robot_Joint_Is_Unattached(void);
 	void Robot_Joint_Unhide_Unattached(void);
-	void Robots_Recolor_Blue(void);
-	void Robots_Recolor_Green(void);
-	void Robots_Recolor_Red(void);
+	void Robots_Recolor(char color);
 	void Robots_Set_Color(double r, double g, double b);
 	void Save(void);
 	void Save(ofstream *outFile);

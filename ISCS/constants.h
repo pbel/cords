@@ -28,7 +28,8 @@ int		SELECTION_LEVEL_ENVS		= 3;
 
 // Optimizer-related constants
 
-int		STARTING_EVALUATION_TIME	= 500;
+//int		STARTING_EVALUATION_TIME	= 500;		//*****
+int		STARTING_EVALUATION_TIME	= 1500;
 double		MUTATION_PROBABILITY		= 0.05;
 
 int		EVALS_UNTIL_EVAL_TIME_EXTENDED	= 30;
@@ -83,6 +84,9 @@ int		OBJECT_FACE_RIGHT		= 3;
 int		OBJECT_FACE_TOP			= 4;
 int		OBJECT_FACE_BOTTOM		= 5;
 
+int		GEOMETRICAL			= 0;
+int		PHYSICAL			= 1;
+
 
 // Light source constants
 
@@ -94,13 +98,25 @@ double		MAX_LIGHT_SENSOR_DISTANCE	= 40;
 // Robot-specific constants
 
 int		MAX_ROBOTS			= 8;
-int		MAX_COMPONENTS			= 30;
-int		MAX_JOINTS			= 30;
+int		MAX_COMPONENTS			= 50;
+int		MAX_JOINTS			= 50;
 
 int		ROBOT_STARFISH			= 0;
 int		ROBOT_SNAKE			= 1;
 int		ROBOT_QUADRUPED			= 2;
+int		ROBOT_PNEU_QUAD			= 3;
 int		ROBOT_SANDBOX			= 99;
+
+double		ROBOT_PNEU_QUAD_BOX_LENGTH	= 1.0;
+double		ROBOT_PNEU_QUAD_BOX_WIDTH	= 0.4;
+double		ROBOT_PNEU_QUAD_BOX_HEIGHT	= 0.2;
+double		ROBOT_PNEU_QUAD_CYL_RADIUS	= 0.2;
+double		ROBOT_PNEU_QUAD_CYL_LENGTH	= 0.1;
+
+double		ROBOT_PNEU_QUAD_EXT_RANGE	= 0.0;
+double		ROBOT_PNEU_QUAD_FLEX_RANGE	= 30.0;
+double		ROBOT_PNEU_QUAD_MOTOR_STRENGTH	= 1.5;
+double		ROBOT_PNEU_QUAD_MOTOR_SPEED	= 5.0;
 
 double		ROBOT_STARFISH_BODY_LENGTH	= 1.0;
 double		ROBOT_STARFISH_BODY_WIDTH	= 1.0;

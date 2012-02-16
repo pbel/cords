@@ -131,8 +131,13 @@ void ROBOT::Activate_Component(void) {
 	if ( (numObjects > 0) || (numJoints > 0) )
 		if ( activeComponent < numObjects ) 
 			objects[activeComponent]->Activate();
-		else
+		else {
 			joints[activeComponent - numObjects]->Activate();
+//			printf("active joint number: %d, obj1: %d  obj2: %d\n",
+//			       activeComponent - numObjects,
+//			       joints[activeComponent-numObjects]->obj1Index,
+//			       joints[activeComponent-numObjects]->obj2Index);
+		}
 }
 
 void ROBOT::Active_Component_Copy(void) {
@@ -704,7 +709,7 @@ void ROBOT::Component_Reindex_After_Deletion(void) {
 
 void ROBOT::Connect_Joint(void) {
 
-	// connect the first two marked objects with the joint
+	// connect the last two marked objects with the joint
 
 	if ( activeComponent < numObjects ) // the active comp must be a joint
 		return; 
@@ -712,24 +717,39 @@ void ROBOT::Connect_Joint(void) {
 	int jInd =  activeComponent - numObjects;
 
 	int i;
+	int maxMarkIndex = -1;
+	int maxIndex = -1;
+	int penMarkIndex = -1;
+	int penIndex = -1;
+
 	for ( i=0; i < numObjects; i++ ) {
-		if ( objects[i] -> marked ) {
-			joints[jInd] -> obj1Index = i;
-			break;
+		if ( objects[i]->markIndex > maxMarkIndex ) {
+			penMarkIndex = maxMarkIndex;
+			penIndex = maxIndex;
+			maxMarkIndex = objects[i]->markIndex;
+			maxIndex = i;
+		} else {
+			if ( objects[i]->markIndex > penMarkIndex ) {
+				penMarkIndex = objects[i]->markIndex;
+				penIndex = i;
+			}
 		}
 	}
-	for ( i++; i < numObjects; i++ ) {
-		if ( objects[i] -> marked ) {
-			joints[jInd] -> obj2Index = i;
-			break;
-		}
-	}
+
+	joints[jInd] -> obj1Index = penIndex; // penultimate marked is object 1
+	joints[jInd] -> obj2Index = maxIndex; // last marked is object 2
 
 	if ( joints[jInd] -> obj1Index < 0 || joints[jInd] -> obj2Index < 0 ) {
 		joints[jInd] -> obj1Index = -1;
 		joints[jInd] -> obj2Index = -1;
 		return;
 	}
+
+//	printf("next-to-last marked: %d, last marked: %d\n",
+//	       penIndex, maxIndex);
+//	printf("joint index: %d  obj1: %d  obj2: %d\n",
+//	       jInd,penIndex,maxIndex);
+
 //	printf("robot.cpp: joint %d: obj1 = %d;\tobj2 = %d\n",
 //	       jInd, joints[jInd] -> obj1Index,joints[jInd] -> obj2Index);
 
@@ -761,19 +781,23 @@ void ROBOT::Create_Sandbox_Joints(void) {
 	for (int j=0;	j<numJoints;	j++)
 		joints[j] = NULL;
 
-	joints[0] = new JOINT(this,1,2,
-			      -1.0, 0.5,
-			      ROBOT_SANDBOX_CYL_LENGTH
-			      +ROBOT_SANDBOX_CYL_RADIUS,
+	joints[0] = new JOINT(this,-1, -1,
+			      0.0, 
+			      ROBOT_SANDBOX_BOX_LENGTH/2.0,
+			      0.4,
 			      1.0, 0.0, 0.0,
 			      -ROBOT_SANDBOX_JOINT_RANGE,
 			      +ROBOT_SANDBOX_JOINT_RANGE);
+
+	for (int j=0;j<numJoints;j++)
+
+		joints[j]->Sensor_Proprioceptive_Add();
 }
 
 void ROBOT::Create_Sandbox_Objects(void) {
 
 	// allowable parts for user-created robot
-	numObjects = 3;
+	numObjects = 2;
 
 	objects = new OBJECT * [MAX_COMPONENTS];
 	for (int i=0;	i<MAX_COMPONENTS;	i++)
@@ -784,40 +808,27 @@ void ROBOT::Create_Sandbox_Objects(void) {
 				ROBOT_SANDBOX_BOX_LENGTH,
 				ROBOT_SANDBOX_BOX_WIDTH,
 				ROBOT_SANDBOX_BOX_HEIGHT,
-				0,
-				0,
-				ROBOT_SANDBOX_BOX_HEIGHT
-				+ROBOT_SANDBOX_CYL_LENGTH,
+				0.0,
+				0.0,
+				0.2,
 				0,0,1);
 
 	// cylinders
   	objects[1] = new OBJECT(SHAPE_CYLINDER, 
 				ROBOT_SANDBOX_CYL_RADIUS,
 				ROBOT_SANDBOX_CYL_LENGTH,
-				-ROBOT_SANDBOX_BOX_LENGTH/2.0
-				-ROBOT_SANDBOX_CYL_LENGTH/2.0,
 				0,
-				ROBOT_SANDBOX_CYL_LENGTH
-				+ROBOT_SANDBOX_CYL_RADIUS,
+				1.2,
+				0.2,
 				0.0,1.0,0.0);
 
-  	objects[2] = new OBJECT(SHAPE_CYLINDER, 
-				ROBOT_SANDBOX_CYL_RADIUS,
-				ROBOT_SANDBOX_CYL_LENGTH,
-				-ROBOT_SANDBOX_BOX_LENGTH/2.0
-				-ROBOT_SANDBOX_CYL_LENGTH/2.0,
-				ROBOT_SANDBOX_CYL_LENGTH/2.0,
-				ROBOT_SANDBOX_CYL_LENGTH/2.0
-				+ROBOT_SANDBOX_CYL_RADIUS,
-				0.0,0.0,1.0);
-
-	for (int i=0;i<numObjects;i++)
+	// automatically add light and touch sensor to all components
+	for (int i=0;i<numObjects;i++) {
 
 		objects[i]->Sensor_Light_Add();
 
-	// automatically adding touch sensor to cylinder
-	objects[1]->Sensor_Touch_Add(); 
-	objects[2]->Sensor_Touch_Add(); 
+		objects[i]->Sensor_Touch_Add();
+	}
 }
 
 void ROBOT::Create_Starfish(void) {

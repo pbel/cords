@@ -14,10 +14,11 @@ public:
 	class   ROBOT 	*containerRobot;
 	PROP_SENSOR 	*proprioceptiveSensor;
 	int		active; // for selection by user
-	int		marked;
+	int		markIndex;
 	int		hidden;
 	double  	axisX, axisY, axisZ;
 	double		color[3];
+	// The joint's limits, expressed in degrees.
 	double		maxFlexion, maxExtension;
 	int		obj1Index;
 	int		obj2Index;
@@ -28,7 +29,6 @@ private:
 	dReal		R[12];
 	dJointID 	joint;
 	int		physicalized;
-	// The joint's limits, expressed in degrees.
 
 public:
 	JOINT(void);
@@ -70,6 +70,7 @@ private:
 			double posX, double posY, double posZ,
 			double axX,  double axY,  double axZ,
 			double maxF, double maxE);
+	void Mark_Joint(void);
 	double Rand(double min, double max);
 	void Remove_From_Simulator(void);
         double Scale(double value, double min1, double max1,

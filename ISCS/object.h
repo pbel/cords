@@ -28,7 +28,7 @@ public:
 	double	x, y, z;
 	double  rotX, rotY, rotZ;
 	int     active;
-	int     marked;	// multiple objects can be marked
+	int     markIndex;	// multiple objects can be marked
 
 	LIGHT_SENSOR *lightSensor;
 	TOUCH_SENSOR *touchSensor;
@@ -97,6 +97,7 @@ public:
 private:
 	void Destroy(void);
 	void Draw_Geometrically(void);
+	void Draw_Light_Sensor(int);
 	void Draw_Physically(void);
 	void Draw_Solidly(void);
 	bool File_Exists(char *fileName);
@@ -107,6 +108,7 @@ private:
 	void Initialize(ifstream *inFile);
 	void Initialize_Cylinder(ifstream *inFile);
 	void Initialize_Rectangular_Solid(ifstream *inFile);
+	void Mark_Object(void);
 	void Remove_From_Simulator(void);
 	void Save_Cylinder(ofstream *outFile);
 	void Save_Rectangular_Solid(ofstream *outFile);

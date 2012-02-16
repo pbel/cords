@@ -34,6 +34,9 @@ extern int      OBJECT_FACE_RIGHT;
 extern int      OBJECT_FACE_TOP;
 extern int      OBJECT_FACE_BOTTOM;
 
+extern int GEOMETRICAL;
+extern int PHYSICAL;
+
 OBJECT::OBJECT(	int sh,
 		double l, double w, double h,
 		double posX, double posY, double posZ,
@@ -252,10 +255,7 @@ void OBJECT::Make_Solid(dWorldID world, dSpaceID space) {
 
 void OBJECT::Mark(void) {
 
-	marked = true;
-
-	Set_Color(0.4, 0.0, 0.8);
-
+	Mark_Object();
 }
 
 void OBJECT::Move(double deltaX, double deltaY, double deltaZ) {
@@ -431,7 +431,7 @@ void OBJECT::Unhide(void) {
 
 void OBJECT::Unmark(void) {
 
-	marked = false;
+	markIndex = -1;
 
 	Set_Color(1.0, 0.0, 0.0);
 }
@@ -486,24 +486,7 @@ void OBJECT::Draw_Geometrically(void) {
 
 	if ( lightSensor ) {
 
-		if ( shape == SHAPE_CYLINDER )
-			lightSensor->Draw(1.5*radius,x,y,z);
-
-		else if ( shape == SHAPE_RECTANGLE ) {
-
-			double minDimension = 1000.0;
-
-			if ( length < minDimension )
-				minDimension = length;
-
-			if ( width < minDimension )
-				minDimension = width;
-
-			if ( height < minDimension )
-				minDimension = height;
-
-			lightSensor->Draw(1.5*minDimension,x,y,z);
-		}
+		Draw_Light_Sensor(GEOMETRICAL); 
 	}
 }
 
@@ -522,27 +505,50 @@ void OBJECT::Draw_Physically(void) {
 	}
 
 	if ( lightSensor ) {
+		Draw_Light_Sensor(PHYSICAL); 
+	}
+}
 
-		if ( shape == SHAPE_CYLINDER )
-			lightSensor->Draw(1.5*radius,
-			(double*)dBodyGetPosition(body));
+void OBJECT::Draw_Light_Sensor(int mode) {
 
-		else if ( shape == SHAPE_RECTANGLE ) {
+	if ( shape == SHAPE_CYLINDER ) {
 
-			double minDimension = 1000.0;
+		if ( 2.0*length < radius )
 
-			if ( length < minDimension )
-				minDimension = length;
+			if ( mode == PHYSICAL )
 
-			if ( width < minDimension )
-				minDimension = width;
+				lightSensor->Draw(length+0.05,
+						  (double*)dBodyGetPosition(body));
+			else
+				lightSensor->Draw(length+0.05,x,y,z);
 
-			if ( height < minDimension )
-				minDimension = height;
+		else
+			if ( mode == PHYSICAL )
 
-			lightSensor->Draw(1.5*minDimension,
-					(double*)dBodyGetPosition(body));
-		}
+				lightSensor->Draw(radius+0.04,
+						  (double*)dBodyGetPosition(body));
+			else
+				lightSensor->Draw(radius+0.04,x,y,z);
+
+	} else if ( shape == SHAPE_RECTANGLE ) {
+
+		double minDimension = 1000.0;
+
+		if ( length < minDimension )
+			minDimension = length;
+
+		if ( width < minDimension )
+			minDimension = width;
+
+		if ( height < minDimension )
+			minDimension = height;
+
+		if ( mode == PHYSICAL )
+
+			lightSensor->Draw(minDimension/2.0+0.1,
+					  (double*)dBodyGetPosition(body));
+		else
+			lightSensor->Draw(minDimension/2.0+0.1,x,y,z);
 	}
 }
 
@@ -623,7 +629,7 @@ void OBJECT::Initialize(double posX, double posY, double posZ,
 	rotZ = rZ;
 
 	active = false;
-	marked = false;
+	markIndex = -1;
 	hidden = false;
 	
 	body = NULL;
@@ -703,7 +709,7 @@ void OBJECT::Initialize(ifstream *inFile) {
 	body = NULL;
 	geom = NULL;
 
-	marked = false;
+	markIndex = -1;
 
 	state = OBJECT_STATE_INCORPOREAL;
 }
@@ -719,6 +725,25 @@ void OBJECT::Initialize_Rectangular_Solid(ifstream *inFile) {
 
 	(*inFile) >> length >> width >> height;
 	radius = 0;
+}
+
+void OBJECT::Mark_Object(void) {
+
+	int maxMarkIndex = -1;
+
+	for ( int i=0; i<containerRobot->numObjects; i++ ) {
+
+		if ( containerRobot->objects[i]->markIndex > maxMarkIndex )
+
+			maxMarkIndex = containerRobot->objects[i]->markIndex;
+	}
+
+	markIndex = ++maxMarkIndex;
+
+//	printf("object Mark_Object() markIndex: %d\n",markIndex);
+
+	Set_Color(0.4, 0.0, 0.8);
+
 }
 
 void OBJECT::Remove_From_Simulator(void) {
