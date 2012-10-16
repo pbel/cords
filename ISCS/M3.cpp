@@ -32,9 +32,57 @@ void 		Simulator_Destroy(void);
 
 int		showGraphics;
 int		randSeed = RAND_SEED;
-//int		captureScript = false;
-int		captureScript = true;	// TBD: for student experiment
+char		capture_fname[64] = "SavedFiles/m3cmd.scr";
+int		captureScript = false;
+//int		captureScript = true;	// for student experiment
+char		playback_fname[64] = "SavedFiles/m3cmd.scr";
+FILE*		ifp;
+//int		playbackScript = true;
+int		playbackScript = false;
+int		playbackDone = false;
 struct		timeval currTime;
+
+// function prototypes to allow playback script in Simulate()
+int Geoms_Can_Interpenetrate(dGeomID o1, dGeomID o2);
+char Get_Next_Cmd(FILE* fp);
+void Set_Touch_Sensor(dGeomID o);
+void Resolve_Contact(dGeomID o1, dGeomID o2);
+void Simulator_Initialize(void);
+void Simulator_Destroy(void);
+void Simulate(int pause);
+void Change_EvaluationPeriod(char cmd);
+void Joint_Range_Change(char cmd);
+void Change_MutationProbability(char cmd);
+void Change_Selection_Level(char cmd);
+int Command_To_Change_EvaluationPeriod(char cmd);
+int Command_To_Change_Joint_Range(char cmd);
+int Command_To_Change_MutationProbability(char cmd);
+int Command_To_Change_Selection_Level(char cmd);
+int Command_To_Load_Or_Save_Environment(char cmd);
+int Command_To_Move_Rapidly(char cmd);
+int Command_To_Move_Slowly(char cmd);
+int Command_To_Resize_Object(char cmd);
+int Command_To_Rotate_Rapidly(char cmd);
+int Command_To_Rotate_Slowly(char cmd);
+int Command_To_Switch_ActiveElement(char cmd);
+int Command_To_Switch_Mode(char cmd);
+int Command_To_Switch_View(char cmd);
+void Load_Or_Save_Environment(char cmd);
+void Move_Rapidly(char cmd);
+void Move_Slowly(char cmd);
+void Resize_Object(char cmd);
+void Rotate_Rapidly(char cmd);
+void Rotate_Slowly(char cmd);
+void Setup_Auto_Evolve(void);
+void Switch_ActiveElement(char cmd);
+void Switch_Mode(char cmd);
+void Switch_View(char cmd);
+dsFunctions Simulator_Create(void);
+void Print_Usage(void);
+void Parse_Parameters(int argc, char **argv);
+FILE* Open_File(char* fname, char mode[]);
+void Close_File(FILE* fp);
+
 
 int Geoms_Can_Interpenetrate(dGeomID o1, dGeomID o2) {
 
@@ -56,11 +104,42 @@ int Geoms_Can_Interpenetrate(dGeomID o1, dGeomID o2) {
 	// contacts between them. 
 	// Don't bother computing contacts between different
 	// parts of the environment, because they do not move.
+	// TBD: Last statement not necessarily true; could have hinged parts
+	// in environment. 
 
 	// return true if both objects are part of a robot
 	// or both objects are part of the environment
 
 	return !(object1IsPartOfRobot ^ object2IsPartOfRobot);
+}
+
+char Get_Next_Cmd(FILE* fp) {
+
+	// assumes the file is opened for reading
+
+	char cmd, extra; 
+
+	int filestop;
+
+	if ( playbackScript )
+
+		fscanf(fp,"%c",&cmd);
+
+	if ( cmd == EOF ) {
+
+		playbackDone = true;
+
+	} else {
+		// cue up the next command;  TBD: clean this up
+		filestop = fscanf(fp,"%c",&extra);
+		while ( extra != '\n' && filestop != EOF) {
+			filestop = fscanf(fp,"%c",&extra);
+		}
+		if ( filestop == EOF )
+			playbackDone = true; 
+	}
+
+	return cmd;
 }
 
 void Set_Touch_Sensor(dGeomID o) {
@@ -132,7 +211,21 @@ static void start()
 	static float hpr[3] = {121.0000f,-27.5000f,0.0000f};
 	dsSetViewpoint (xyz,hpr);
 //	printf ("Press:\t'1' to save the current state to 'state.dif'.\n");
-	envs->Mode_View_Set_Back();
+//	envs->Mode_View_Set_Back();
+	envs->Mode_View_Set_Side();
+	Setup_Auto_Evolve();	// for Governor's Institute of VT students
+
+}
+
+void Setup_Auto_Evolve(void) {
+
+	Switch_ActiveElement('[');
+	envs->Active_Element_Copy();
+	for (int i=0; i<5; i++ ) {
+		Move_Rapidly('W');
+	}
+	Change_Selection_Level('-');
+	Switch_Mode('v');
 }
 
 void Simulator_Initialize(void) {
@@ -179,6 +272,85 @@ void Simulate(int pause) {
 			envs->Show_Champ(	world, 
 						space);
 
+		// read the playback script here
+		if ( (playbackScript == true) && playbackDone == false ) {
+
+			char cmd;
+
+			cmd = Get_Next_Cmd(ifp);
+
+			//printf("cmd = %c\n",cmd);
+
+// TBD: for student experiment, edit the script off-line to end at the last v
+// (entry to evolve mode); we check for EOF in playback. 
+
+			if ( Command_To_Switch_Mode(cmd) )
+				Switch_Mode(cmd);
+
+			else if ( Command_To_Switch_View(cmd) )
+				Switch_View(cmd);
+
+			else if ( Command_To_Move_Slowly(cmd) )
+				Move_Slowly(cmd);
+
+			else if ( Command_To_Move_Rapidly(cmd) )
+				Move_Rapidly(cmd);
+
+			else if ( Command_To_Switch_ActiveElement(cmd) )
+				Switch_ActiveElement(cmd);
+
+			else if ( cmd=='c' )
+				envs->Active_Element_Copy();
+
+			else if ( cmd=='X' )
+				envs->Active_Element_Delete();
+
+			else if ( cmd=='(' )
+				envs->Active_Element_Mark();
+
+			else if ( cmd==')' )
+				envs->Active_Element_Unmark();
+
+			else if ( Command_To_Change_Joint_Range(cmd) )
+				Joint_Range_Change(cmd);
+
+			else if ( cmd=='@' )
+				envs->Joint_Connect();
+
+			else if ( Command_To_Change_MutationProbability(cmd) )
+				Change_MutationProbability(cmd);
+
+			else if ( Command_To_Change_EvaluationPeriod(cmd) )
+				Change_EvaluationPeriod(cmd);
+
+			else if ( cmd=='i' ) // Start or stop recording a mov[i]e
+				// disable for playback
+				printf("Movie recording is disabled during command playback.\n");
+				//envs->Video_Start_Stop();
+			else if ( Command_To_Load_Or_Save_Environment(cmd) )
+				Load_Or_Save_Environment(cmd);
+
+			else if ( Command_To_Resize_Object(cmd) )
+				Resize_Object(cmd);
+
+			else if ( Command_To_Rotate_Rapidly(cmd) )
+				Rotate_Rapidly(cmd);
+
+			else if ( Command_To_Rotate_Slowly(cmd) )
+				Rotate_Slowly(cmd);
+
+			else if ( Command_To_Change_Selection_Level(cmd) )
+				Change_Selection_Level(cmd);
+
+			if ( captureScript ) {
+			// capture input commands, with timestamp
+				char fname[64] = "SavedFiles/m3cmd.scr";
+				gettimeofday(&currTime, NULL);
+				FILE *ofp = fopen (fname,"a");
+				fprintf (ofp,"%c %ld\n",cmd,currTime.tv_sec);
+				fclose(ofp);
+			}
+		}
 	}
 }
 
@@ -497,8 +669,8 @@ static void command (int cmd)
 
 	else if ( cmd=='i' ) // Start or stop recording a mov[i]e
 // TBD: disable for student experiment
-		printf("Movie recording is disabled\n");
-//		envs->Video_Start_Stop();
+//		printf("Movie recording is disabled\n");
+		envs->Video_Start_Stop();
 	else if ( Command_To_Load_Or_Save_Environment(cmd) )
 		Load_Or_Save_Environment(cmd);
 
@@ -604,6 +776,26 @@ void Parse_Parameters(int argc, char **argv) {
 	}
 }
 
+
+FILE* Open_File(char* fname, char mode[]) {
+
+	FILE *fp;
+
+	if ((fp = fopen(fname,mode)) == NULL) {
+
+	    printf("Can't open %s.\n",fname);
+
+	    exit(1);
+	}
+
+	return fp;
+}
+
+void Close_File(FILE* fp) {
+
+	fclose(fp);
+}
+
 int main (int argc, char **argv)
 {
 
@@ -611,7 +803,13 @@ int main (int argc, char **argv)
 
 	Parse_Parameters(argc,argv);
 
+	char scr_file_open_mode[4] = "r";
+
+	if ( playbackScript )
+		ifp = Open_File(playback_fname, scr_file_open_mode);
+
 	srand(randSeed);
+//	srand(time(NULL));
 
 	dsFunctions fn = Simulator_Create();
 
@@ -619,10 +817,10 @@ int main (int argc, char **argv)
 
 	if ( showGraphics )
 		dsSimulationLoop (argc,argv,352,288,&fn);
-//		dsSimulationLoop (argc,argv,704,576,&fn);
-//		dsSimulationLoop (argc,argv,1056,864,&fn);
 	else {
-		envs->Prepare_To_Run_Without_Graphics(world,space);
+		if ( ~playbackScript ) {
+			envs->Prepare_To_Run_Without_Graphics(world,space);
+		}
 		while ( 1 )
 			Simulate(false);
 	}

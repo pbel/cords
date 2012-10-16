@@ -563,9 +563,9 @@ void OPTIMIZER::Genomes_Print(void) {
 
 void OPTIMIZER::Genomes_Save(ofstream *outFile) {
 
-	for (int i=0;	i<populationSize;	i++)
-
+	for (int i=0;	i<populationSize;	i++) {
 		genomes[i]->Save(outFile);
+	}
 }
 
 void OPTIMIZER::Initialize(void) {

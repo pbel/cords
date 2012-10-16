@@ -1,5 +1,6 @@
 #include "stdio.h"
 #include "sys/stat.h"
+#include <time.h>	// for fitness timestamp
 
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
@@ -54,8 +55,8 @@ ENVS::ENVS(void) {
 
 	taskEnvironments[0]->Add_Light_Source();
 
-//	taskEnvironments[0]->Add_Robot_Starfish();
-	taskEnvironments[0]->Add_Robot_Sandbox();
+	taskEnvironments[0]->Add_Robot_Starfish();
+//	taskEnvironments[0]->Add_Robot_Sandbox();
 
 	taskEnvironments[0]->Set_Color(1,0,0);
 
@@ -72,6 +73,15 @@ ENVS::ENVS(void) {
 	activeEnvironment = 0;
 
 	evaluationsSinceLastSave = 0;
+
+// TBD: the following lines are for time-stamping a command file
+//	time_t rawtime;
+//	struct tm * timeinfo;
+//	time ( &rawtime );
+//	timeinfo = localtime ( &rawtime );
+//	char tmstamp[128];
+//	sprintf(tmstamp,"%s", asctime(timeinfo) );
+//	Save_Fitness(tmstamp);
 }
 
 ENVS::~ENVS(void) {
@@ -646,16 +656,14 @@ void ENVS::Selection_Level_Raise(void) {
 		return;
 
 	else if ( selectionLevel==SELECTION_LEVEL_ENVIRONMENT ) {
-	// "environment" is highest level for users for now
 
-//		taskEnvironments[activeEnvironment]->Deactivate_All();
-//
-//		taskEnvironments[activeEnvironment]->Unmark_All();
-//
-//		Activate_All();
-//
-//		selectionLevel=SELECTION_LEVEL_ENVS;
-		return;
+		taskEnvironments[activeEnvironment]->Deactivate_All();
+
+		taskEnvironments[activeEnvironment]->Unmark_All();
+
+		Activate_All();
+
+		selectionLevel=SELECTION_LEVEL_ENVS;
 	}
 
 	else if ( selectionLevel==SELECTION_LEVEL_OBJECT ) {
@@ -1233,6 +1241,10 @@ void ENVS::Save(int showGraphics) {
 
 	Save_Environments(outFile);
 
+//	char envsindex[128];
+//	sprintf(envsindex,"envs.dat index: %d\n",fileIndex);
+//	Save_Fitness(envsindex);
+
 	Save_Optimizer(outFile);
 
 	outFile->close();
@@ -1251,6 +1263,27 @@ void ENVS::Save_Environments(ofstream *outFile) {
 		if ( taskEnvironments[i] )
 
 			taskEnvironments[i]->Save(outFile);
+}
+
+void ENVS::Save_Fitness(string str) {
+
+	char fileName[100];
+	sprintf(fileName,"SavedFiles/fitness.dat");
+
+	ofstream fitFile;
+	fitFile.open (fileName, ios::app); 
+
+	if ( str == "" )  {
+		char fit[127];
+		sprintf(fit,"%4.5f",Fitness_Get());
+		fitFile << fit << "\n";
+	} else {
+		fitFile << str;
+	}
+
+	fitFile.close();
+
+//	printf("Fitness saved.\n");
 }
 
 void ENVS::Save_Optimizer(ofstream *outFile) {
@@ -1329,6 +1362,9 @@ void ENVS::Video_Stop(void) {
 
 	(*outFile) << "mencoder 'mf://*.jpg' -mf fps=60 -o Movie"<<movieIndex<<".avi -ovc lavc \n";
 
+	(*outFile) << "mencoder 'mf://*.jpg' -mf fps=60 -o Movie"<<movieIndex<<".mp4 -ovc lavc -lavcopts vcodec=mpeg4 -of mpeg \n";
+
+	// TBD: comment-out to leave the series of jpegs:
 	(*outFile) << "rm *.jpg \n";
 
 	outFile->close();
@@ -1338,10 +1374,8 @@ void ENVS::Video_Stop(void) {
 	sprintf(command,"chmod 777 Movie%d.bat",movieIndex);
 	system(command);
 
-// TBD: don't run the movie-making script automatically; 
-//      leave the series of jpegs 
-//	sprintf(command,"./Movie%d.bat &",movieIndex);
-//	system(command);
+	sprintf(command,"./Movie%d.bat &",movieIndex);
+	system(command);
 
 	recordingVideo = false;
 }

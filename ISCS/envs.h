@@ -109,6 +109,7 @@ private:
 	int  Robots_Have_Stopped(void);
 	void Save(int showGraphics);
 	void Save_Environments(ofstream *outFile);
+	void Save_Fitness(string);
 	void Save_Optimizer(ofstream *outFile);
 	void SavedFile_FindNext(void);
 	double Sensor_Sum(void);

@@ -18,12 +18,13 @@ public:
 	int     numMotors;
 	int	numNodes;
 	int	inAFixedAttractor;
+	double  fitness;// TBD: temporarily make public, for optimizer genome save
 
 private:
 	int	numConnections;
 	MATRIX  *edgeList;
 	int	ID;
-	double  fitness;
+//	double  fitness;
 	int	evaluated;
 	int	genomesEvaluatedWhenCreated;
 

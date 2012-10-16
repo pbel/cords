@@ -37,18 +37,18 @@ int		EVAL_TIME_EXTENSION_PERIOD	= 10;
 
 double		WORST_FITNESS			= -1000000.0;
 
-//int		MAX_EVALS_BEFORE_SAVING		= 100;		//*****
-int		MAX_EVALS_BEFORE_SAVING		= 10;
+int		MAX_EVALS_BEFORE_SAVING		= 100;		//*****
+//int		MAX_EVALS_BEFORE_SAVING		= 10;
 
 int		TIME_TO_CHECK_FOR_NEUTRAL_MUTATION = 50;
 
 //	ALPS-related constants
 
-//int		ALPS_NUM_LAYERS			= 60;		//*****
-int		ALPS_NUM_LAYERS			= 2;
+int		ALPS_NUM_LAYERS			= 60;		//*****
+//int		ALPS_NUM_LAYERS			= 2;
 
-//int		ALPS_GENOMES_PER_LAYER		= 5;		//*****
-int		ALPS_GENOMES_PER_LAYER		= 1;
+int		ALPS_GENOMES_PER_LAYER		= 5;		//*****
+//int		ALPS_GENOMES_PER_LAYER		= 1;
 
 // Constants related to viewing the simulation
 

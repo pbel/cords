@@ -299,6 +299,9 @@ void ENVIRONMENT::Add_Robot_Starfish(void) {
 
 void ENVIRONMENT::Allow_Robot_To_Move(int timeStep) {
 
+//	printf("timeStep: %d, chTime: %d, rawTime: %d, stepTime:%d\n",
+//	       timeStep, timeStep % 25, timeStep/25, (timeStep/25) % 4);
+
 	if ( robots[0] ) {
 
 		robots[0]->Sensors_Update();
