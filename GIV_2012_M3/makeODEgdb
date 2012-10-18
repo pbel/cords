@@ -1,0 +1,34 @@
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c matrix.cpp       -o matrix.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c lightSensor.cpp       -o lightSensor.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c propSensor.cpp       -o propSensor.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c touchSensor.cpp       -o touchSensor.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c object.cpp       -o object.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c joint.cpp       -o joint.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c neuralNetwork.cpp       -o neuralNetwork.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c robot.cpp       -o robot.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c environment.cpp       -o environment.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c optimizer.cpp       -o optimizer.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c envs.cpp       -o envs.o
+g++ -g -DdTRIMESH_ENABLED -DdDOUBLE -DdNODEBUG -I "$HOME/ode/include" -c M3.cpp       -o M3.o
+
+g++ -g -o M3 \
+matrix.o \
+lightSensor.o \
+propSensor.o \
+touchSensor.o \
+object.o \
+joint.o \
+neuralNetwork.o \
+robot.o \
+environment.o \
+optimizer.o \
+envs.o \
+M3.o \
+-lSM \
+-lICE \
+$HOME/ode/drawstuff/src/.libs/libdrawstuff.a \
+$HOME/ode/ode/src/.libs/libode.a \
+-lGLU \
+-lGL \
+-lm \
+-lpthread
